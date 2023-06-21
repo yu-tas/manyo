@@ -1,0 +1,32 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+  </head>
+  <header>
+    <h1>投稿一覧</h1>
+  </header>
+
+  <body>
+    <table>
+      <tr>
+      <th>タイトル</th>
+      <th>内容</th>
+      </tr>
+
+    <% @tasks.each do |task| %>
+    <tr>
+      <td><%= task.title %></td>
+      <td><%= task.content %></td>
+
+      <td><%= link_to '投稿を作成する', new_task_path %></td>
+      <td><%= link_to '詳細を確認する', task_path(task.id) %></td>
+      <td><%= link_to '投稿を編集する', edit_task_path(task.id) %></td>
+      <td><%= link_to '投稿を削除する', task_path(task.id), method: :delete, data: { confirm: '本当に削除していいですか？' } %></td>
+    </tr>
+    <% end %>
+            </table>
+
+  </body>
+
+
+</html>
