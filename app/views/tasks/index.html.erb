@@ -9,15 +9,16 @@
   <body>
     <table>
       <tr>
-      <th>名前</th>
+      <th>タイトル</th>
       <th>内容</th>
       </tr>
 
     <% @tasks.each do |task| %>
     <tr>
-      <td><%= task.name %></td>
+      <td><%= task.title %></td>
       <td><%= task.content %></td>
 
+      <td><%= link_to '投稿を作成する', new_task_path %></td>
       <td><%= link_to '詳細を確認する', task_path(task.id) %></td>
       <td><%= link_to '投稿を編集する', edit_task_path(task.id) %></td>
       <td><%= link_to '投稿を削除する', task_path(task.id), method: :delete, data: { confirm: '本当に削除していいですか？' } %></td>
