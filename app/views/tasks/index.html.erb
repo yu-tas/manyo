@@ -7,27 +7,39 @@
   </header>
 
   <body>
-    <div class=task_row>
+  <%= form_with(scope: :task, url: tasks_path, method: :get, local: true) do |form| %>
+    <%= form.label :title, 'タイトル' %>
+    <%= form.text_field :title %>
+  
+    <%= form.label :status, 'ステータス' %>
+    <%= form.select :status, Task.statuses.keys.map { |s| [s, s] }, include_blank: '選択してください' %>
+  
+      <%= form.submit "検索" %>
+    <% end %>
+   
       <table>
         <tr>
         <th><%= t('view.title') %></th>
         <th><%= t('view.content') %></th>
         <th><%= t('view.created_at') %></th>
+        <th><%= t('view.deadline') %></th>
+        <th><%= t('view.status') %><th>
         </tr>
       <% @tasks.each do |task| %>
-      <tr>
+      <tr class=task_row >
         <td><%= task.title %></td>
         <td><%= task.content %></td>
         <td><%= task.created_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
-        <td><%= link_to '投稿を作成する', new_task_path %></td>
+        <td><%= task.deadline %></td>
+        <td><%= task.status %></td>
         <td><%= link_to '詳細を確認する', task_path(task.id) %></td>
         <td><%= link_to '投稿を編集する', edit_task_path(task.id) %></td>
         <td><%= link_to '投稿を削除する', task_path(task.id), method: :delete, data: { confirm: '本当に削除していいですか？' } %></td>
       </tr>
       <% end %>
           </table>
-    </div>
-
+         <p><%= link_to '投稿を作成する', new_task_path %></p>  
+        <p><%= link_to "終了期限でソートする", tasks_path(sort_expired: "true") %></p>    
   </body>
 
 

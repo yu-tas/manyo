@@ -20,6 +20,14 @@
     <%= form.label :content %>
     <%= form.text_field :content %>
   </div>
+
+  <div class="task_deadline">
+    <%= form.label :deadline %>
+    <%= form.datetime_local_field :deadline %>
+  </div>
+
+  <%= form.select :status, Task.statuses.keys.map { |s| [s, s] }, include_blank: '選択してください' %>
+
     <%= form.submit "登録する"%>
   <% end %>
   

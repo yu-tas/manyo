@@ -12,4 +12,9 @@ FactoryBot.define do
     title { 'second_task_title' }
     content { 'second_task_content' }
   end
+
+  factory :third_task, class: Task do
+    title { 'third_task_title' }
+    content { 'third_task_content' }
+  end
 end
