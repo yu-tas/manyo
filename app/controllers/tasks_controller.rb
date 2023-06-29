@@ -1,22 +1,23 @@
 class TasksController < ApplicationController
   def index
-    @tasks = Task.order(created_at: :desc)
+    @tasks = Task.all.order(created_at: :desc)
+
     if params[:task].present?
       @tasks = @tasks.title_like(params[:task][:title]) if params[:task][:title].present?
       @tasks = @tasks.status_is(params[:task][:status]) if params[:task][:status].present?
     end
   
-  
     if params[:sort_expired] 
-      @tasks = @tasks.order(deadline: :asc)
+      @tasks = @tasks.reorder(deadline: :asc)
     end
 
     if params[:sort_priority] 
-      @tasks = Task.order(priority: :desc)
+      @tasks = @tasks.reorder(priority: :desc)
     end
-    
+
     @tasks = @tasks.page(params[:page]).per(10)
   end
+
     
   def show
     @task = Task.find(params[:id])
