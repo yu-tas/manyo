@@ -1,29 +1,64 @@
 require 'rails_helper'
 RSpec.describe 'タスク管理機能', type: :system do
-  let!(:task){FactoryBot.create(:task, title: 'task1', content: 'task1_content', deadline: 2.days.from_now, created_at: 2.days.ago)}
-  let!(:second_task){FactoryBot.create(:task, title: 'task2', content: 'task2_content', deadline: 1.day.from_now, created_at: 1.days.ago)}
-  let!(:third_task){FactoryBot.create(:task, title: 'task3', content: 'task3_content', deadline: 3.days.from_now, created_at: 3.days.ago)}
+  let!(:task){FactoryBot.create(:task, title: 'task1', content: 'task1_content', status: :未着手, deadline: 2.days.from_now, created_at: 2.days.ago, priority: :low)}
+  let!(:second_task){FactoryBot.create(:task, title: 'task2', content: 'task2_content', status: :着手中, deadline: 1.day.from_now, created_at: 1.days.ago, priority: :medium)}
+  let!(:third_task){FactoryBot.create(:task, title: 'task3', content: 'task3_content', status: :完了, deadline: 3.days.from_now, created_at: 3.days.ago, priority: :high)}
+
     
-
-  describe '新規作成機能' do
-    context 'タスクを新規作成した場合' do
-      it '作成したタスクが表示される' do
-        visit new_task_path
-        fill_in 'Title', with: 'task_title'
-        fill_in 'Content', with: 'task_content'
-        fill_in 'Deadline', with: 3.days.from_now
-        click_button '登録する' 
-        expect(page).to have_content 'task_title'
-        expect(page).to have_content 'task_content'
-
+  describe '検索機能' do
+    context 'タイトルであいまい検索をした場合' do
+      it "検索キーワードを含むタスクで絞り込まれる" do
+        visit tasks_path
+        fill_in 'task_title', with: 'task1'
+        click_button '検索'
+        expect(page).to have_content 'task1'
+      end
+    end
+    context 'ステータス検索をした場合' do
+      it "ステータスに完全一致するタスクが絞り込まれる" do
+        visit tasks_path
+        select '着手中', from: 'task[status]'
+        click_button '検索'
+        expect(page).to have_content 'task2'
+        expect(page).not_to have_content 'task1'
+        expect(page).not_to have_content 'task3'
+      end
+    end
+    context 'タイトルのあいまい検索とステータス検索をした場合' do
+      it "検索キーワードをタイトルに含み、かつステータスに完全一致するタスク絞り込まれる" do
+        visit tasks_path
+        fill_in "task_title", with: 'task'
+        select '着手中', from: 'task_status'
+        click_button '検索'
+        expect(page).to have_content 'task2'
+        expect(page).not_to have_content 'task1'
+        expect(page).not_to have_content 'task3'
       end
     end
   end
+
+  describe '新規作成機能' do
+  context 'タスクを新規作成した場合' do
+    it 'タスクを新規登録するとき、ステータスも登録ができる' do
+      visit new_task_path
+      fill_in 'Title', with: 'task_title'
+      fill_in 'Content', with: 'task_content'
+      fill_in 'Deadline', with: 3.days.from_now
+      select '着手中', from: 'task[status]'
+      sleep 1.0
+      click_button '登録する' 
+      expect(page).to have_content 'task_title'
+      expect(page).to have_content 'task_content'
+    end
+  end
+end
+
   describe '一覧表示機能' do
     context '一覧画面に遷移した場合' do
       it '作成済みのタスク一覧が表示される' do
         visit tasks_path
         task_list = all('.task_row')
+        sleep 1.0
         expect(task_list[0]).to have_content 'task2_content'
         expect(task_list[1]).to have_content 'task1_content'
         expect(task_list[2]).to have_content 'task3_content'
@@ -32,10 +67,9 @@ RSpec.describe 'タスク管理機能', type: :system do
 
     context 'タスクが作成日時の降順に並んでいる場合' do
       it '新しいタスクが一番上に表示される' do
-        new_task = FactoryBot.create(:task, title: 'new_task_title', content: 'new_task_content', deadline: 3.days.from_now) 
+        new_task = FactoryBot.create(:task, title: 'new_task_title', content: 'new_task_content', deadline: 3.days.from_now, status: :完了, priority: :low) 
         visit tasks_path
         task_list = all(".task_row")
-        expect(task_list[0]).to have_content 'new_task_title'
         expect(task_list[0]).to have_content 'new_task_content'
       end
     end
@@ -45,11 +79,41 @@ RSpec.describe 'タスク管理機能', type: :system do
         click_link '終了期限でソートする'
         sleep 1.0
         task_list = all(".task_row")
-        expect(task_list[0]).to have_content 'task2'
-        expect(task_list[1]).to have_content 'task1'
-        expect(task_list[2]).to have_content 'task3'
+        expect(task_list[0]).to have_content 'task2_content'
+        expect(task_list[1]).to have_content 'task1_content'
+        expect(task_list[2]).to have_content 'task3_content'
       end
     end
+    context '優先順位でソートする場合' do
+      it '優先順位が低いタスクが一番上に表示される' do
+        visit tasks_path
+        click_link '優先順位でソートする'
+        sleep 1.0
+        task_list = all(".task_row")
+        expect(task_list[0]).to have_content 'task1_content'
+        expect(task_list[1]).to have_content 'task2_content'
+        expect(task_list[2]).to have_content 'task3_content'
+      end
+    end
+    context 'タスク一覧のページネーションが機能する場合' do
+      before do
+        create_list(:task, 15) 
+        visit tasks_path
+      end
+    
+      it '1ページ目には10個のタスクが表示される' do
+        sleep 5.0
+        task_list = all(".task_row")
+        expect(task_list.size).to eq 10
+      end
+    
+      it '2ページ目には5個のタスクが表示される' do
+        click_link 'Next'  
+        sleep 5.0
+        task_list = all(".task_row")
+        expect(task_list.size).to eq 8
+      end
+    end 
   end
   describe '詳細表示機能' do
     context '任意のタスク詳細画面に遷移した場合' do

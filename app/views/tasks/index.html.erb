@@ -1,46 +1,58 @@
-<html>
-  <head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-  </head>
-  <header>
-    <h1>投稿一覧</h1>
-  </header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Task List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <h1 class="mt-5 mb-5">投稿一覧</h1>
 
-  <body>
-  <%= form_with(scope: :task, url: tasks_path, method: :get, local: true) do |form| %>
-    <%= form.label :title, 'タイトル' %>
-    <%= form.text_field :title %>
-  
-    <%= form.label :status, 'ステータス' %>
-    <%= form.select :status, Task.statuses.keys.map { |s| [s, s] }, include_blank: '選択してください' %>
-  
-      <%= form.submit "検索" %>
+    <%= form_with(scope: :task, url: tasks_path, method: :get, local: true, class: 'form-inline my-2 my-lg-0') do |form| %>
+        <%= form.text_field :title, class: 'form-control mr-sm-2', placeholder: 'タイトル' %>
+        <%= form.select :status, Task.statuses.keys.map { |s| [s, s] }, { include_blank: '選択してください' }, class: 'form-control mr-sm-2' %>
+        <%= form.submit "検索", class: "btn btn-outline-success my-2 my-sm-0" %>
     <% end %>
-   
-      <table>
+
+    <table class="table table-striped mt-5">
+        <thead>
         <tr>
-        <th><%= t('view.title') %></th>
-        <th><%= t('view.content') %></th>
-        <th><%= t('view.created_at') %></th>
-        <th><%= t('view.deadline') %></th>
-        <th><%= t('view.status') %><th>
+            <th><%= t('view.title') %></th>
+            <th><%= t('view.content') %></th>
+            <th><%= t('view.created_at') %></th>
+            <th><%= t('view.deadline') %></th>
+            <th><%= t('view.status') %></th>
+            <th><%= t('enums.task.priority')%></th>
+            <th>Actions</th>
         </tr>
-      <% @tasks.each do |task| %>
-      <tr class=task_row >
-        <td><%= task.title %></td>
-        <td><%= task.content %></td>
-        <td><%= task.created_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
-        <td><%= task.deadline %></td>
-        <td><%= task.status %></td>
-        <td><%= link_to '詳細を確認する', task_path(task.id) %></td>
-        <td><%= link_to '投稿を編集する', edit_task_path(task.id) %></td>
-        <td><%= link_to '投稿を削除する', task_path(task.id), method: :delete, data: { confirm: '本当に削除していいですか？' } %></td>
-      </tr>
-      <% end %>
-          </table>
-         <p><%= link_to '投稿を作成する', new_task_path %></p>  
-        <p><%= link_to "終了期限でソートする", tasks_path(sort_expired: "true") %></p>    
-  </body>
+        </thead>
+        <tbody>
+        <% @tasks.each do |task| %>
+            <tr>
+                <td><%= task.title %></td>
+                <td class="task_row"><%= task.content %></td>
+                <td><%= task.created_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+                <td><%= task.deadline %></td>
+                <td><%= task.status %></td>
+                <td><%= task.priority %></td>
+                <td>
+                    <%= link_to '詳細', task_path(task.id), class: 'btn btn-info' %>
+                    <%= link_to '編集', edit_task_path(task.id), class: 'btn btn-primary' %>
+                    <%= link_to '削除', task_path(task.id), method: :delete, data: { confirm: '本当に削除していいですか？' }, class: 'btn btn-danger' %>
+                </td>
+            </tr>
+        <% end %>
+        </tbody>
+    </table>
 
+    <%= link_to '新規作成', new_task_path, class: 'btn btn-success mb-3' %>
 
+    <%= link_to "終了期限でソートする", tasks_path(sort_expired: "true"), class: 'btn btn-warning mb-3' %>
+    <%= link_to "優先順位でソートする", tasks_path(sort_priority: "true"), class: 'btn btn-info mb-3' %>
+
+    <%= paginate @tasks, class: 'pagination' %>
+</div>
+</body>
 </html>

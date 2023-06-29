@@ -184,3 +184,9 @@ ja:
   view:
     title: タイトル
     content: 内容
+  enums:
+    task:
+      priority:
+        high: 高
+        medium: 中
+        low: 低
