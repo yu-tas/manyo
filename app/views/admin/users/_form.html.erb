@@ -32,6 +32,11 @@
   </div>
 
   <div>
+    <%= form.label :role %>
+    <%= form.select :role, User.roles.keys.map { |role| [role.humanize, role] } %>
+  </div>
+
+  <div>
     <%= form.submit %>
   </div>
 <% end %>
