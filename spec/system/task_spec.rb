@@ -1,10 +1,17 @@
 require 'rails_helper'
 RSpec.describe 'タスク管理機能', type: :system do
-  let!(:task){FactoryBot.create(:task, title: 'task1', content: 'task1_content', status: :未着手, deadline: 2.days.from_now, created_at: 2.days.ago, priority: :low)}
-  let!(:second_task){FactoryBot.create(:task, title: 'task2', content: 'task2_content', status: :着手中, deadline: 1.day.from_now, created_at: 1.days.ago, priority: :medium)}
-  let!(:third_task){FactoryBot.create(:task, title: 'task3', content: 'task3_content', status: :完了, deadline: 3.days.from_now, created_at: 3.days.ago, priority: :high)}
+  let!(:user) { FactoryBot.create(:user) }
+  let!(:task){FactoryBot.create(:task, title: 'task1', content: 'task1_content', status: :未着手, deadline: 2.days.from_now, created_at: 2.days.ago, priority: :low, user: user)}
+  let!(:second_task){FactoryBot.create(:task, title: 'task2', content: 'task2_content', status: :着手中, deadline: 1.day.from_now, created_at: 1.days.ago, priority: :medium, user: user)}
+  let!(:third_task){FactoryBot.create(:task, title: 'task3', content: 'task3_content', status: :完了, deadline: 3.days.from_now, created_at: 3.days.ago, priority: :high, user: user)}
 
-    
+  before do
+    visit new_session_path
+    fill_in 'Email', with: user.email
+    fill_in 'Password', with: user.password
+    click_button 'Log in'
+  end  
+
   describe '検索機能' do
     context 'タイトルであいまい検索をした場合' do
       it "検索キーワードを含むタスクで絞り込まれる" do
@@ -27,7 +34,7 @@ RSpec.describe 'タスク管理機能', type: :system do
     context 'タイトルのあいまい検索とステータス検索をした場合' do
       it "検索キーワードをタイトルに含み、かつステータスに完全一致するタスク絞り込まれる" do
         visit tasks_path
-        fill_in "task_title", with: 'task'
+        fill_in "task[title]", with: 'task'
         select '着手中', from: 'task_status'
         click_button '検索'
         expect(page).to have_content 'task2'
@@ -41,9 +48,9 @@ RSpec.describe 'タスク管理機能', type: :system do
   context 'タスクを新規作成した場合' do
     it 'タスクを新規登録するとき、ステータスも登録ができる' do
       visit new_task_path
-      fill_in 'Title', with: 'task_title'
-      fill_in 'Content', with: 'task_content'
-      fill_in 'Deadline', with: 3.days.from_now
+      fill_in 'task[title]', with: 'task_title'
+      fill_in 'task[content]', with: 'task_content'
+      fill_in 'task[deadline]', with: 3.days.from_now
       select '着手中', from: 'task[status]'
       sleep 1.0
       click_button '登録する' 
@@ -54,6 +61,12 @@ RSpec.describe 'タスク管理機能', type: :system do
 end
 
   describe '一覧表示機能' do
+    before do
+      visit new_session_path
+      fill_in 'Email', with: user.email
+      fill_in 'Password', with: user.password
+      click_button 'Log in'
+    end
     context '一覧画面に遷移した場合' do
       it '作成済みのタスク一覧が表示される' do
         visit tasks_path
@@ -97,6 +110,10 @@ end
     end
     context 'タスク一覧のページネーションが機能する場合' do
       before do
+        visit new_session_path
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Log in'
         create_list(:task, 15) 
         visit tasks_path
       end
@@ -118,6 +135,10 @@ end
   describe '詳細表示機能' do
     context '任意のタスク詳細画面に遷移した場合' do
       it '該当タスクの内容が表示される' do
+        visit new_session_path
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Log in'
         visit task_path(task)
         expect(page).to have_content 'task1'
         expect(page).to have_content 'task1_content' 
