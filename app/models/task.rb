@@ -6,4 +6,5 @@ class Task < ApplicationRecord
   scope :title_like, ->(title){where('title LIKE?',"%#{title}%") if title.present?}
   scope :status_is, ->(status){where(status: status)if status.present?}
   enum priority: { high: 0, medium: 1, low: 2 }
+  belongs_to :user
 end

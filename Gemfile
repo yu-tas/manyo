@@ -31,6 +31,7 @@ end
 
 group :test do
   gem 'capybara', '>= 3.26'
+  gem 'selenium-webdriver'
   gem 'webdrivers'
 end
 
@@ -39,3 +40,4 @@ gem 'net-smtp'
 gem 'net-imap'
 gem 'net-pop'
 gem 'kaminari'
+gem 'bcrypt'

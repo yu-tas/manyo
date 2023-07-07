@@ -25,6 +25,7 @@
             <th><%= t('view.deadline') %></th>
             <th><%= t('view.status') %></th>
             <th><%= t('enums.task.priority')%></th>
+            <th><%= t('view.user')%></th>
             <th>Actions</th>
         </tr>
         </thead>
@@ -37,6 +38,7 @@
                 <td><%= task.deadline %></td>
                 <td><%= task.status %></td>
                 <td><%= task.priority %></td>
+                <td><%= task.user.name %></td>
                 <td>
                     <%= link_to '詳細', task_path(task.id), class: 'btn btn-info' %>
                     <%= link_to '編集', edit_task_path(task.id), class: 'btn btn-primary' %>

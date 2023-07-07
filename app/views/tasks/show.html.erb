@@ -4,4 +4,6 @@
 <p><%= t('view.created_at') %> : <%= @task.created_at.strftime('%Y-%m-%d %H:%M:%S')%></p>
 <p><%= t('view.deadline') %> : <%= @task.deadline %></p>
 <p><%= t('view.status') %> : <%= @task.status %></p>
+<p>ユーザー名: <%= @task.user.name %></p>
 
+<%= link_to "タスク一覧画面にもどる", tasks_path %>

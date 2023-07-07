@@ -1,0 +1,11 @@
+<h1>Edit User</h1>
+
+<%= form_with(model: @user, url: admin_user_path(@user), method: :patch, local: true) do |form| %>
+  <%= form.label :admin %>
+  <%= form.check_box :admin %>
+
+  <%= render 'form', user: @user %>
+<% end %>
+
+<%= link_to 'Back', admin_users_path %>
+
