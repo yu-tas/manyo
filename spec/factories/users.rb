@@ -4,14 +4,14 @@ FactoryBot.define do
     email { "test_user@example.com" }
     password { "password" }
     password_confirmation { "password" }
-    admin { false }
+    role { :general }
 
     factory :admin_user do
       name { "admin_user" }
       email { "admin_user@example.com" }
       password { "password" }
       password_confirmation { "password" }
-      admin { true }
+      role { :admin }
     end
   end
 end
