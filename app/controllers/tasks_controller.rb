@@ -5,7 +5,12 @@ class TasksController < ApplicationController
     if params[:task].present?
       @tasks = @tasks.title_like(params[:task][:title]) if params[:task][:title].present?
       @tasks = @tasks.status_is(params[:task][:status]) if params[:task][:status].present?
-    end
+      
+      # ラベルが選択されている場合のみ検索を行う
+      if params[:task][:label_ids].present? && params[:task][:label_ids].reject(&:empty?).present?
+        @tasks = @tasks.label_is(params[:task][:label_ids])
+      end
+    end       
   
     if params[:sort_expired] 
       @tasks = @tasks.reorder(deadline: :asc)
@@ -68,6 +73,6 @@ class TasksController < ApplicationController
   
   private                                                      
   def task_params
-    params.require(:task).permit(:title, :content, :deadline, :status, :priority)                    
+    params.require(:task).permit(:title, :content, :deadline, :status, :priority, label_ids:[])                    
   end
 end

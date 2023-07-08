@@ -1,9 +1,9 @@
 require 'rails_helper'
 RSpec.describe 'タスク管理機能', type: :system do
   let!(:user) { FactoryBot.create(:user) }
-  let!(:task){FactoryBot.create(:task, title: 'task1', content: 'task1_content', status: :未着手, deadline: 2.days.from_now, created_at: 2.days.ago, priority: :low, user: user)}
-  let!(:second_task){FactoryBot.create(:task, title: 'task2', content: 'task2_content', status: :着手中, deadline: 1.day.from_now, created_at: 1.days.ago, priority: :medium, user: user)}
-  let!(:third_task){FactoryBot.create(:task, title: 'task3', content: 'task3_content', status: :完了, deadline: 3.days.from_now, created_at: 3.days.ago, priority: :high, user: user)}
+  let!(:task){FactoryBot.create(:task, title: 'task1', content: 'task1_content', status: :未着手, deadline: 2.days.from_now, created_at: 2.days.ago, priority: :low, labels: [Label.create(name: 'ラベル2')], user: user)}
+  let!(:second_task){FactoryBot.create(:task, title: 'task2', content: 'task2_content', status: :着手中, deadline: 1.day.from_now, created_at: 1.days.ago, priority: :medium, labels: [Label.create(name: 'ラベル1')], user: user)}
+  let!(:third_task){FactoryBot.create(:task, title: 'task3', content: 'task3_content', status: :完了, deadline: 3.days.from_now, created_at: 3.days.ago, priority: :high, labels: [Label.create(name: 'ラベル3')], user: user)}
 
   
 
@@ -34,8 +34,20 @@ RSpec.describe 'タスク管理機能', type: :system do
         expect(page).not_to have_content 'task3'
       end
     end
+    context 'ラベル検索した場合' do
+      it"ラベルに完全一致するタスクが絞られる" do #3
+        sleep 3
+        visit tasks_path
+        check('1')
+        click_button '検索'
+        expect(page).to have_content 'task2'
+        expect(page).not_to have_content 'task1'
+        expect(page).not_to have_content 'task3'
+      end
+    end
+
     context 'タイトルのあいまい検索とステータス検索をした場合' do
-      it "検索キーワードをタイトルに含み、かつステータスに完全一致するタスク絞り込まれる" do  #3
+      it "検索キーワードをタイトルに含み、かつステータスに完全一致するタスク絞り込まれる" do  #4
         sleep 3
         visit tasks_path
         fill_in "task[title]", with: 'task'
@@ -44,39 +56,56 @@ RSpec.describe 'タスク管理機能', type: :system do
         expect(page).to have_content 'task2'
       end
     end
+
+    context 'タイトルのあいまい検索とステータス検索とラベル検索をした場合' do
+      it "検索キーワードをタイトルに含み、かつステータスとラベルに完全一致するタスク絞り込まれる" do  #5
+        sleep 3
+        visit tasks_path
+        fill_in "task[title]", with: 'task'
+        select '着手中', from: 'task_status'
+        check('1')
+        click_button '検索'
+        expect(page).to have_content 'task2'
+      end
+    end
   end
 
   describe '新規作成機能' do
   context 'タスクを新規作成した場合' do
-    it 'タスクを新規登録するとき、ステータスも登録ができる' do #4
+    it 'タスクを新規登録するとき、ステータスも登録ができ、ラベルも登録できる' do #6
       visit new_session_path
       fill_in 'Email', with: user.email
       fill_in 'Password', with: user.password
-      binding.pry
+      sleep 10
       click_button 'Log in'
-      binding.pry
+      sleep 10
       visit new_task_path
       sleep 5.0
       fill_in 'task[title]', with: 'task_title'
       fill_in 'task[content]', with: 'task_content'
       fill_in 'task[deadline]', with: 3.days.from_now
       select '着手中', from: 'task[status]'
+      check 'ラベル1'
+      sleep 10
       sleep 3.0
       click_button '登録する' 
       expect(page).to have_content 'task_title'
+      expect(page).to have_content '着手中'
+      expect(page).to have_content 'ラベル1'
     end
   end
 end
 
   describe '一覧表示機能' do
     context '一覧画面に遷移した場合' do
-      it '作成済みのタスク一覧が表示される' do  #5
+      it '作成済みのタスク一覧が表示される' do  #7
         visit new_session_path
         fill_in 'Email', with: user.email
         fill_in 'Password', with: user.password
         click_button 'Log in'
+        sleep 10
         visit tasks_path
-        sleep 15
+        sleep 20
         task_list = all('.task_row')
         sleep 1.0
         expect(task_list[0]).to have_content 'task2_content'
@@ -86,27 +115,28 @@ end
     end
 
     context 'タスクが作成日時の降順に並んでいる場合' do
-      it '新しいタスクが一番上に表示される' do  #6
+      it '新しいタスクが一番上に表示される' do  #8
         visit new_session_path
         fill_in 'Email', with: user.email
         fill_in 'Password', with: user.password
         click_button 'Log in'
         new_task = FactoryBot.create(:task, title: 'new_task_title', content: 'new_task_content', deadline: 3.days.from_now, status: :完了, priority: :low, user: user) 
         visit tasks_path
+        sleep 10
         task_list = all(".task_row")
         expect(task_list[0]).to have_content 'new_task_content'
       end
     end
     context '終了期限でソートする場合' do
-      it '終了期限が速いタスクが一番上に表示される' do  #7
+      it '終了期限が速いタスクが一番上に表示される' do  #9
         visit new_session_path
         fill_in 'Email', with: user.email
         fill_in 'Password', with: user.password
-        binding.pry
+        sleep 10
         click_button 'Log in'
         sleep 10
-        binding.pry
         visit tasks_path
+        sleep 10
         click_link '終了期限でソートする'
         sleep 5.0
         task_list = all(".task_row")
@@ -116,13 +146,14 @@ end
       end
     end
     context '優先順位でソートする場合' do
-      it '優先順位が低いタスクが一番上に表示される' do  #8
+      it '優先順位が低いタスクが一番上に表示される' do  #10
         visit new_session_path
         fill_in 'Email', with: user.email
         fill_in 'Password', with: user.password
         click_button 'Log in'
+        sleep 10
         visit tasks_path
-        sleep 3.0
+        sleep 10.0
         click_link '優先順位でソートする'
         sleep 3.0
         task_list = all(".task_row")
@@ -142,13 +173,13 @@ end
         visit tasks_path
       end
     
-      it '1ページ目には10個のタスクが表示される' do  #9
+      it '1ページ目には10個のタスクが表示される' do  #11
         sleep 5.0
         task_list = all(".task_row")
         expect(task_list.size).to eq 10
       end
     
-      it '2ページ目には5個のタスクが表示される' do  #10
+      it '2ページ目には5個のタスクが表示される' do  #12
         click_link 'Next'  
         sleep 5.0
         task_list = all(".task_row")
@@ -157,19 +188,56 @@ end
     end 
   end
   describe '詳細表示機能' do
-    context '任意のタスク詳細画面に遷移した場合' do  #11
+    context '任意のタスク詳細画面に遷移した場合' do  #13
       it '該当タスクの内容が表示される' do
         visit new_session_path
         sleep 3
         fill_in 'Email', with: user.email
         fill_in 'Password', with: user.password
         click_button 'Log in'
-        binding.pry
+        sleep 10
         visit task_path(task)
         sleep 3
         expect(page).to have_content 'task1'
         expect(page).to have_content 'task1_content' 
       end
+    end
+  end
+  describe "タスク編集" do
+    before do
+      visit new_session_path
+      fill_in 'Email', with: user.email
+      fill_in 'Password', with: user.password
+      sleep 10
+      click_button 'Log in'
+      sleep 10
+      visit new_task_path
+      sleep 5.0
+      fill_in 'task[title]', with: 'task_title'
+      fill_in 'task[content]', with: 'task_content'
+      fill_in 'task[deadline]', with: 3.days.from_now
+      select '着手中', from: 'task[status]'
+      check('1')
+      sleep 3.0
+      click_button '登録する' 
+      # タスク編集画面に移動する
+      visit edit_task_path(task.id)
+      sleep 10
+      # タスクの詳細を編集する
+      fill_in 'task[title]', with: 'Edited Task'
+      fill_in 'task[content]', with: 'Edited Content'
+      # ラベルを選択する
+      check('1')
+      # タスクを更新する
+      click_button '登録する'
+      # タスク詳細画面に移動する
+      visit task_path(task.id)
+    end
+
+    it "タスクとラベルが正しく更新される" do  #14
+      expect(page).to have_content 'Edited Task'
+      expect(page).to have_content 'Edited Content'
+      expect(page).to have_content 'ラベル1'
     end
   end
 end

@@ -30,6 +30,8 @@
     <%= form.select :priority, Task.priorities.keys.map {|k| [t("enums.task.priority.#{k}"), k]} %>
 
   <%= form.select :status, Task.statuses.keys.map { |s| [s, s] }, include_blank: '選択してください' %>
+
+   <%= form.collection_check_boxes :label_ids, Label.all, :id, :name %>
   
     <%= form.submit "登録する"%>
   <% end %>
